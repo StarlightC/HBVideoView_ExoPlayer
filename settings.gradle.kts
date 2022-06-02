@@ -15,7 +15,7 @@ dependencyResolutionManagement {
             url = uri("https://maven.pkg.github.com/StarlightC/HBVideoView_Core")
             credentials {
                 username = "StarlightC"
-                password = "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"
+                password = "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"
             }
         }
     }

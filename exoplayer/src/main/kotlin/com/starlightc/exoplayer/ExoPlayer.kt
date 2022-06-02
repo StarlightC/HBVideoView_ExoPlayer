@@ -8,18 +8,16 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.MutableLiveData
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.analytics.AnalyticsListener
 import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.source.LoadEventInfo
-import com.google.android.exoplayer2.source.MediaLoadData
-import com.google.auto.service.AutoService
 import com.starlightc.video.core.Constant
 import com.starlightc.video.core.SimpleLogger
 import com.starlightc.video.core.infomation.PlayInfo
 import com.starlightc.video.core.infomation.PlayerState
 import com.starlightc.video.core.infomation.VideoDataSource
 import com.starlightc.video.core.infomation.VideoSize
+import com.starlightc.video.core.interfaces.ErrorProcessor
 import com.starlightc.video.core.interfaces.IMediaPlayer
+import com.starlightc.video.core.interfaces.InfoProcessor
 import com.starlightc.video.core.interfaces.Settings
 
 /**
@@ -29,8 +27,17 @@ import com.starlightc.video.core.interfaces.Settings
  * ExoPlayer封装
  */
 
-@AutoService(IMediaPlayer::class)
-class ExoPlayer: IMediaPlayer<ExoPlayer>, AnalyticsListener {
+open class ExoPlayer: IMediaPlayer<ExoPlayer> {
+
+    override fun getInfoProcessor(): InfoProcessor {
+        return ExoInfoProcessor()
+    }
+
+    override fun getErrorProcessor(): ErrorProcessor {
+        return ExoErrorProcessor()
+    }
+
+
     override lateinit var lifecycleRegistry: LifecycleRegistry
 
     /**
@@ -172,7 +179,7 @@ class ExoPlayer: IMediaPlayer<ExoPlayer>, AnalyticsListener {
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.CONTENT_TYPE_MUSIC)
                 .build(), false)
-        instance.addAnalyticsListener(this)
+        instance.addAnalyticsListener(ExoAnalyticsListener(this))
         lifecycleRegistry.currentState = Lifecycle.State.CREATED
     }
 
@@ -440,115 +447,4 @@ class ExoPlayer: IMediaPlayer<ExoPlayer>, AnalyticsListener {
     }
 
 
-    /**
-     * Called when a media source started loading data.
-     *
-     * @param eventTime The event time.
-     * @param loadEventInfo The [LoadEventInfo] defining the load event.
-     * @param mediaLoadData The [MediaLoadData] defining the data being loaded.
-     */
-    override fun onLoadStarted(
-        eventTime: AnalyticsListener.EventTime,
-        loadEventInfo: LoadEventInfo,
-        mediaLoadData: MediaLoadData
-    ) {
-        videoInfoLD.value = PlayInfo(Constant.EXOPLAYER_INFO_CODE_LOADING_START, Constant.EXOPLAYER_INFO_CODE_LOADING_START)
-        SimpleLogger.instance.debugI("ExoPlayer 开始加载")
-    }
-
-    /**
-     * Called when a media source completed loading data.
-     *
-     * @param eventTime The event time.
-     * @param loadEventInfo The [LoadEventInfo] defining the load event.
-     * @param mediaLoadData The [MediaLoadData] defining the data being loaded.
-     */
-    override fun onLoadCompleted(
-        eventTime: AnalyticsListener.EventTime,
-        loadEventInfo: LoadEventInfo,
-        mediaLoadData: MediaLoadData
-    ) {
-        videoInfoLD.value = PlayInfo(Constant.EXOPLAYER_INFO_CODE_LOADING_COMPLETED, Constant.EXOPLAYER_INFO_CODE_LOADING_COMPLETED)
-        SimpleLogger.instance.debugI("ExoPlayer 加载完毕")
-    }
-
-    /**
-     * Called when a media source canceled loading data.
-     *
-     * @param eventTime The event time.
-     * @param loadEventInfo The [LoadEventInfo] defining the load event.
-     * @param mediaLoadData The [MediaLoadData] defining the data being loaded.
-     */
-    override fun onLoadCanceled(
-        eventTime: AnalyticsListener.EventTime,
-        loadEventInfo: LoadEventInfo,
-        mediaLoadData: MediaLoadData
-    ) {
-        videoInfoLD.value = PlayInfo(Constant.EXOPLAYER_INFO_CODE_LOADING_CANCELED, Constant.EXOPLAYER_INFO_CODE_LOADING_CANCELED)
-        SimpleLogger.instance.debugI("ExoPlayer 加载取消")
-    }
-
-    /**
-     * Called when a frame is rendered for the first time since setting the surface, or since the
-     * renderer was reset, or since the stream being rendered was changed.
-     *
-     * @param eventTime The event time.
-     * @param output The output to which a frame has been rendered. Normally a [Surface],
-     * however may also be other output types (e.g., a [VideoDecoderOutputBufferRenderer]).
-     * @param renderTimeMs [SystemClock.elapsedRealtime] when the first frame was rendered.
-     */
-    override fun onRenderedFirstFrame(
-        eventTime: AnalyticsListener.EventTime,
-        output: Any,
-        renderTimeMs: Long
-    ) {
-        videoInfoLD.value = PlayInfo(Constant.EXOPLAYER_INFO_CODE_RENDERING_STARTED, Constant.EXOPLAYER_INFO_CODE_RENDERING_STARTED)
-    }
-
-    /**
-     * Called when the playback state changed.
-     *
-     * @param eventTime The event time.
-     * @param state The new [playback state][Player.State].
-     */
-    override fun onPlaybackStateChanged(eventTime: AnalyticsListener.EventTime, state: Int) {
-        super.onPlaybackStateChanged(eventTime, state)
-        when(state){
-            Player.STATE_READY -> {
-                if (instance.isPlaying){
-                    playerStateLD.value = PlayerState.STARTED
-                } else {
-                    playerStateLD.value = PlayerState.PREPARED
-                }
-            }
-            Player.STATE_BUFFERING -> {
-                bufferingProgressLD.value = instance.bufferedPercentage
-            }
-            Player.STATE_ENDED -> {
-                playerStateLD.value = PlayerState.COMPLETED
-            }
-            Player.STATE_IDLE -> {
-                if (playerStateLD.value != PlayerState.STOPPED) {
-                    playerStateLD.value = PlayerState.IDLE
-                }
-            }
-        }
-    }
-
-    /**
-     * Called when the player starts or stops playing.
-     *
-     * @param eventTime The event time.
-     * @param isPlaying Whether the player is playing.
-     */
-    override fun onIsPlayingChanged(eventTime: AnalyticsListener.EventTime, isPlaying: Boolean) {
-        if (isPlaying) {
-            videoInfoLD.value = PlayInfo(Constant.EXOPLAYER_INFO_CODE_IS_PLAYING, Constant.EXOPLAYER_INFO_CODE_IS_PLAYING)
-            SimpleLogger.instance.debugI("正在播放")
-        }
-    }
-
-    override fun onSeekProcessed(eventTime: AnalyticsListener.EventTime) {
-        seekCompleteLD.value = true
-    }
 }

@@ -1,7 +1,6 @@
 package com.starlightc.exoplayer
 
 
-import com.google.auto.service.AutoService
 import com.starlightc.video.core.Constant
 import com.starlightc.video.core.SimpleLogger
 import com.starlightc.video.core.interfaces.ErrorProcessor
@@ -11,8 +10,7 @@ import com.starlightc.video.core.interfaces.ErrorProcessor
  * @since 2022/5/26
  *
  */
-@AutoService(ErrorProcessor::class)
-class ExoErrorProcessor: ErrorProcessor {
+open class ExoErrorProcessor: ErrorProcessor {
     override fun getName(): String {
         return Constant.EXO_ERROR_PROCESSOR
     }

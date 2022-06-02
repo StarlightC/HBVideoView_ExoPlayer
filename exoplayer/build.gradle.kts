@@ -51,11 +51,9 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.3")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
 
-    implementation("com.google.auto.service:auto-service:1.0")
-    kapt("com.google.auto.service:auto-service:1.0")
-    implementation("com.google.android.exoplayer:exoplayer-core:2.17.1")
-    implementation("com.google.android.exoplayer:exoplayer-hls:2.17.1")
-    implementation("com.starlightc.video:hbvideoview_core:0.0.5")
+    api("com.google.android.exoplayer:exoplayer-core:2.17.1")
+    api("com.google.android.exoplayer:exoplayer-hls:2.17.1")
+    implementation("com.starlightc.video:hbvideoview_core:0.0.6")
 }
 
 afterEvaluate {
@@ -71,11 +69,10 @@ afterEvaluate {
         }
         publications {
             create<MavenPublication>("release") {
+                from(components["release"])
                 groupId = "com.starlightc.exoplayer"
                 artifactId = "hbvideoview_exoplayer"
-                version = "0.0.5"
-
-                artifact("$buildDir/outputs/aar/exoplayer-release.aar")
+                version = "0.0.11"
             }
         }
     }

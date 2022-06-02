@@ -1,7 +1,5 @@
 package com.starlightc.exoplayer
 
-import android.util.Log
-import com.google.auto.service.AutoService
 import com.starlightc.video.core.Constant
 import com.starlightc.video.core.SimpleLogger
 import com.starlightc.video.core.interfaces.InfoProcessor
@@ -11,8 +9,7 @@ import com.starlightc.video.core.interfaces.InfoProcessor
  * @since 2022/5/26
  *
  */
-@AutoService(InfoProcessor::class)
-class ExoInfoProcessor: InfoProcessor{
+open class ExoInfoProcessor: InfoProcessor{
     /**
      * 返回InfoProcessor名称
      */
