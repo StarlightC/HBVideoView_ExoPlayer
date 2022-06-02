@@ -53,7 +53,7 @@ dependencies {
 
     api("com.google.android.exoplayer:exoplayer-core:2.17.1")
     api("com.google.android.exoplayer:exoplayer-hls:2.17.1")
-    implementation("com.starlightc.video:hbvideoview_core:0.0.6")
+    implementation("com.starlightc.video:hbvideoview_core:0.1.0")
 }
 
 afterEvaluate {
@@ -72,7 +72,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.starlightc.exoplayer"
                 artifactId = "hbvideoview_exoplayer"
-                version = "0.0.11"
+                version = "0.1.0"
             }
         }
     }
