@@ -1,4 +1,3 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
@@ -53,24 +52,15 @@ dependencies {
 
     api("com.google.android.exoplayer:exoplayer-core:2.17.1")
     api("com.google.android.exoplayer:exoplayer-hls:2.17.1")
-    implementation("com.starlightc.video:hbvideoview_core:0.1.0")
+    implementation("com.github.StarlightC:HBVideoView_Core:v0.1.0")
 }
 
 afterEvaluate {
     publishing {
-        repositories {
-            maven {
-                url = uri("https://maven.pkg.github.com/StarlightC/HBVideoView_ExoPlayer")
-                credentials {
-                    username = gradleLocalProperties(rootDir).getProperty("GITHUB_USER").toString()
-                    password = gradleLocalProperties(rootDir).getProperty("GITHUB_TOKEN").toString()
-                }
-            }
-        }
         publications {
             create<MavenPublication>("release") {
                 from(components["release"])
-                groupId = "com.starlightc.exoplayer"
+                groupId = "com.github.starlightc"
                 artifactId = "hbvideoview_exoplayer"
                 version = "0.1.0"
             }
