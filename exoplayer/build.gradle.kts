@@ -41,8 +41,8 @@ android {
 
 dependencies {
 
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.appcompat:appcompat:1.4.1")
+    implementation("androidx.core:core-ktx:1.6.0")
+    implementation("androidx.appcompat:appcompat:1.3.1")
     implementation("com.google.android.material:material:1.5.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.3.1")
 
@@ -52,7 +52,7 @@ dependencies {
 
     api("com.google.android.exoplayer:exoplayer-core:2.17.1")
     api("com.google.android.exoplayer:exoplayer-hls:2.17.1")
-    implementation("com.github.StarlightC:HBVideoView_Core:v0.1.0")
+    implementation("com.github.StarlightC:HBVideoView_Core:v0.1.4")
 }
 
 afterEvaluate {
@@ -62,7 +62,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.starlightc"
                 artifactId = "hbvideoview_exoplayer"
-                version = "0.1.1"
+                version = "0.1.4"
             }
         }
     }
