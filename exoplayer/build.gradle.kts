@@ -62,7 +62,7 @@ afterEvaluate {
                 from(components["release"])
                 groupId = "com.github.starlightc"
                 artifactId = "hbvideoview_exoplayer"
-                version = "0.1.0"
+                version = "0.1.1"
             }
         }
     }
