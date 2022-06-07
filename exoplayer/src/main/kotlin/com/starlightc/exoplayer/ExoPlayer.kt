@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.Surface
 import android.view.SurfaceHolder
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.MutableLiveData
 import com.google.android.exoplayer2.*
@@ -171,7 +172,11 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
     override fun create(context: Context) {
         this.context = context
         instance = ExoPlayer.Builder(context).build()
-        lifecycleRegistry = LifecycleRegistry(this)
+        lifecycleRegistry = if (context is LifecycleOwner) {
+            LifecycleRegistry(context)
+        } else {
+            LifecycleRegistry(this)
+        }
         playerStateLD.value = PlayerState.IDLE
         targetState = PlayerState.IDLE
         instance.setAudioAttributes(
