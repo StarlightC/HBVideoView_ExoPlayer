@@ -12,7 +12,7 @@ import com.starlightc.video.core.interfaces.ErrorProcessor
  */
 open class ExoErrorProcessor: ErrorProcessor {
     override fun getName(): String {
-        return Constant.EXO_ERROR_PROCESSOR
+        return Constant.EXOPLAYER
     }
 
     override fun process(what: Int, extra: Int): Int {

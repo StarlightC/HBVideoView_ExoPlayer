@@ -52,7 +52,7 @@ dependencies {
 
     api("com.google.android.exoplayer:exoplayer-core:2.16.0")
     api("com.google.android.exoplayer:exoplayer-hls:2.16.0")
-    implementation("com.github.StarlightC:HBVideoView_Core:v0.1.8")
+    implementation("com.github.StarlightC:HBVideoView_Core:v0.1.15")
 }
 
 afterEvaluate {

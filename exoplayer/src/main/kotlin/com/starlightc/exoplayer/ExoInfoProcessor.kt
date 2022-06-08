@@ -14,7 +14,7 @@ open class ExoInfoProcessor: InfoProcessor{
      * 返回InfoProcessor名称
      */
     override fun getName(): String {
-        return Constant.EXO_INFO_PROCESSOR
+        return Constant.EXOPLAYER
     }
 
     /**
