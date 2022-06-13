@@ -396,13 +396,28 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
      * 选择视频源
      */
     override fun selectVideo(index: Int) {
+        selectVideo(index, -1)
+    }
+
+    fun selectVideo(index: Int, type: Int) {
         currentVideo = videoList[index]
         val uri = currentVideo!!.uri
         if (uri == null) {
             SimpleLogger.instance.debugE("Empty Uri")
             return
         }
-        val mediaType = Util.inferContentType(uri)
+        SimpleLogger.instance.debugI("Uri: ${uri.toString()}")
+        val mediaType =
+        if (type == -1) {
+             Util.inferContentType(uri)
+        } else {
+            val origin = Util.inferContentType(uri)
+            if ( origin == 4){
+                type
+            } else {
+                origin
+            }
+        }
         val mediaItemBuilder = MediaItem.Builder().setUri(uri ?: return)
         SimpleLogger.instance.debugI("MediaType: $mediaType")
         if (C.TYPE_HLS == mediaType) {
