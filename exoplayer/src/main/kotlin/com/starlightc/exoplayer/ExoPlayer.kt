@@ -10,6 +10,10 @@ import androidx.lifecycle.MutableLiveData
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
+import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES
+import com.google.android.exoplayer2.source.hls.DefaultHlsDataSourceFactory
+import com.google.android.exoplayer2.source.hls.DefaultHlsExtractorFactory
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.util.MimeTypes
@@ -393,15 +397,35 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
      */
     override fun selectVideo(index: Int) {
         currentVideo = videoList[index]
-        val uri = currentVideo!!.uri?:return
-        val mediaType = Util.inferContentType(uri)
-        val mediaItemBuilder = MediaItem.Builder().setUri(uri ?: return)
-        SimpleLogger.instance.debugI("MediaType: $mediaType")
-        if (C.TYPE_HLS == mediaType) {
-            mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8)
+        val uri = currentVideo!!.uri
+        if (uri == null) {
+            SimpleLogger.instance.debugE("Empty Uri")
+            return
         }
-        instance.setMediaItem(mediaItemBuilder.build())
-        playerStateLD.value = PlayerState.INITIALIZED
+            val mediaType = Util.inferContentType(uri)
+            val mediaItemBuilder = MediaItem.Builder().setUri(uri ?: return)
+            SimpleLogger.instance.debugI("MediaType: $mediaType")
+            if (C.TYPE_HLS == mediaType) {
+                if (hlsDataSourceFactory == null) {
+                    val httpDatasourceFactory = DefaultHttpDataSource.Factory()
+                    val extractorsFactory =
+                        DefaultHlsExtractorFactory(FLAG_ALLOW_NON_IDR_KEYFRAMES, true)
+                    hlsDataSourceFactory = HlsMediaSource
+                        .Factory(httpDatasourceFactory)
+                        .setExtractorFactory(extractorsFactory)
+                }
+                val hlsMediaSource = hlsDataSourceFactory?.createMediaSource(MediaItem.fromUri(uri))
+                if (hlsMediaSource == null) {
+                    SimpleLogger.instance.debugE("Create HlsMediaSource Failed")
+                    return
+                } else {
+                    instance.setMediaSource(hlsMediaSource)
+                }
+            } else {
+                instance.setMediaItem(mediaItemBuilder.build())
+            }
+            playerStateLD.value = PlayerState.INITIALIZED
+        }
     }
 
     /**
@@ -460,5 +484,5 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
         return lifecycleRegistry
     }
 
-    val dataSourceFactory = DefaultHttpDataSource.Factory()
+    private var hlsDataSourceFactory: HlsMediaSource.Factory? = null
 }
