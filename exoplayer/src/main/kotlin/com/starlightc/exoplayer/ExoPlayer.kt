@@ -10,6 +10,9 @@ import androidx.lifecycle.MutableLiveData
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.source.hls.HlsMediaSource
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.util.Util
 import com.starlightc.video.core.Constant
 import com.starlightc.video.core.SimpleLogger
 import com.starlightc.video.core.infomation.PlayInfo
@@ -389,9 +392,16 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
      */
     override fun selectVideo(index: Int) {
         currentVideo = videoList[index]
-        val uri = currentVideo!!.uri
-        val mediaItem = MediaItem.fromUri(uri?:return)
-        instance.setMediaItem(mediaItem)
+        val uri = currentVideo!!.uri?:return
+        val mediaType = Util.inferContentType(uri)
+        if (C.TYPE_HLS == mediaType) {
+            val hlsMediaSource = HlsMediaSource.Factory(dataSourceFactory)
+                .createMediaSource(MediaItem.fromUri(uri))
+            instance.setMediaSource(hlsMediaSource)
+        } else {
+            val mediaItem = MediaItem.fromUri(uri ?: return)
+            instance.setMediaItem(mediaItem)
+        }
         playerStateLD.value = PlayerState.INITIALIZED
     }
 
@@ -451,5 +461,5 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
         return lifecycleRegistry
     }
 
-
+    val dataSourceFactory = DefaultHttpDataSource.Factory()
 }
