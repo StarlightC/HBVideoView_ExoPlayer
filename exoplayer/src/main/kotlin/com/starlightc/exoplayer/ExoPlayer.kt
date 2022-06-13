@@ -402,30 +402,29 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
             SimpleLogger.instance.debugE("Empty Uri")
             return
         }
-            val mediaType = Util.inferContentType(uri)
-            val mediaItemBuilder = MediaItem.Builder().setUri(uri ?: return)
-            SimpleLogger.instance.debugI("MediaType: $mediaType")
-            if (C.TYPE_HLS == mediaType) {
-                if (hlsDataSourceFactory == null) {
-                    val httpDatasourceFactory = DefaultHttpDataSource.Factory()
-                    val extractorsFactory =
-                        DefaultHlsExtractorFactory(FLAG_ALLOW_NON_IDR_KEYFRAMES, true)
-                    hlsDataSourceFactory = HlsMediaSource
-                        .Factory(httpDatasourceFactory)
-                        .setExtractorFactory(extractorsFactory)
-                }
-                val hlsMediaSource = hlsDataSourceFactory?.createMediaSource(MediaItem.fromUri(uri))
-                if (hlsMediaSource == null) {
-                    SimpleLogger.instance.debugE("Create HlsMediaSource Failed")
-                    return
-                } else {
-                    instance.setMediaSource(hlsMediaSource)
-                }
-            } else {
-                instance.setMediaItem(mediaItemBuilder.build())
+        val mediaType = Util.inferContentType(uri)
+        val mediaItemBuilder = MediaItem.Builder().setUri(uri ?: return)
+        SimpleLogger.instance.debugI("MediaType: $mediaType")
+        if (C.TYPE_HLS == mediaType) {
+            if (hlsDataSourceFactory == null) {
+                val httpDatasourceFactory = DefaultHttpDataSource.Factory()
+                val extractorsFactory =
+                    DefaultHlsExtractorFactory(FLAG_ALLOW_NON_IDR_KEYFRAMES, true)
+                hlsDataSourceFactory = HlsMediaSource
+                    .Factory(httpDatasourceFactory)
+                    .setExtractorFactory(extractorsFactory)
             }
-            playerStateLD.value = PlayerState.INITIALIZED
+            val hlsMediaSource = hlsDataSourceFactory?.createMediaSource(MediaItem.fromUri(uri))
+            if (hlsMediaSource == null) {
+                SimpleLogger.instance.debugE("Create HlsMediaSource Failed")
+                return
+            } else {
+                instance.setMediaSource(hlsMediaSource)
+            }
+        } else {
+            instance.setMediaItem(mediaItemBuilder.build())
         }
+        playerStateLD.value = PlayerState.INITIALIZED
     }
 
     /**
