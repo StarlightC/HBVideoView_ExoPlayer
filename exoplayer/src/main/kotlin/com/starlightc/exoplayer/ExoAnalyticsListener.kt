@@ -1,5 +1,8 @@
 package com.starlightc.exoplayer
 
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.view.Surface
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.analytics.AnalyticsListener
@@ -17,6 +20,19 @@ import com.starlightc.video.core.infomation.PlayerState
  * TODO: description
  */
 class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
+    companion object {
+        private const val MSG_UPDATE_BUFFERING = 1
+    }
+    private val eventHandler: Handler =  object: Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            when(msg.what) {
+                MSG_UPDATE_BUFFERING -> {
+                    player.bufferingProgressLD.value = player.instance.bufferedPercentage
+                    sendEmptyMessageDelayed(MSG_UPDATE_BUFFERING,500)
+                }
+            }
+        }
+    }
 
     /**
      * Called when a media source started loading data.
@@ -48,6 +64,7 @@ class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
     ) {
         player.videoInfoLD.value = PlayInfo(Constant.EXOPLAYER_INFO_CODE_LOADING_COMPLETED, Constant.EXOPLAYER_INFO_CODE_LOADING_COMPLETED)
         SimpleLogger.instance.debugI("ExoPlayer 加载完毕")
+        eventHandler.removeMessages(MSG_UPDATE_BUFFERING)
     }
 
     /**
@@ -64,6 +81,7 @@ class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
     ) {
         player.videoInfoLD.value = PlayInfo(Constant.EXOPLAYER_INFO_CODE_LOADING_CANCELED, Constant.EXOPLAYER_INFO_CODE_LOADING_CANCELED)
         SimpleLogger.instance.debugI("ExoPlayer 加载取消")
+        eventHandler.removeMessages(MSG_UPDATE_BUFFERING)
     }
 
     /**
@@ -100,7 +118,8 @@ class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
                 }
             }
             Player.STATE_BUFFERING -> {
-                player.bufferingProgressLD.value = player.instance.bufferedPercentage
+                player.playerStateLD.value = PlayerState.CACHING
+
             }
             Player.STATE_ENDED -> {
                 player.playerStateLD.value = PlayerState.COMPLETED
@@ -126,7 +145,10 @@ class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
         }
     }
 
-    override fun onSeekProcessed(eventTime: AnalyticsListener.EventTime) {
+    override fun onPositionDiscontinuity(eventTime: AnalyticsListener.EventTime ,
+                                         oldPosition: Player.PositionInfo ,
+                                         newPosition: Player.PositionInfo ,
+    @Player.DiscontinuityReason reason: Int ) {
         player.seekCompleteLD.value = true
     }
 
