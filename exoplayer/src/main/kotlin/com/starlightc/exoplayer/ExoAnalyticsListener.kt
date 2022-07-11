@@ -1,8 +1,5 @@
 package com.starlightc.exoplayer
 
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
 import android.view.Surface
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.analytics.AnalyticsListener
@@ -12,6 +9,8 @@ import com.starlightc.video.core.Constant
 import com.starlightc.video.core.SimpleLogger
 import com.starlightc.video.core.infomation.PlayInfo
 import com.starlightc.video.core.infomation.PlayerState
+import com.starlightc.video.core.infomation.VideoSize
+import java.io.IOException
 
 /**
  * @author StarlightC
@@ -20,19 +19,6 @@ import com.starlightc.video.core.infomation.PlayerState
  * TODO: description
  */
 class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
-    companion object {
-        private const val MSG_UPDATE_BUFFERING = 1
-    }
-    private val eventHandler: Handler =  object: Handler(Looper.getMainLooper()) {
-        override fun handleMessage(msg: Message) {
-            when(msg.what) {
-                MSG_UPDATE_BUFFERING -> {
-                    player.bufferingProgressLD.value = player.instance.bufferedPercentage
-                    sendEmptyMessageDelayed(MSG_UPDATE_BUFFERING,500)
-                }
-            }
-        }
-    }
 
     /**
      * Called when a media source started loading data.
@@ -64,7 +50,6 @@ class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
     ) {
         player.videoInfoLD.value = PlayInfo(Constant.EXOPLAYER_INFO_CODE_LOADING_COMPLETED, Constant.EXOPLAYER_INFO_CODE_LOADING_COMPLETED)
         SimpleLogger.instance.debugI("ExoPlayer 加载完毕")
-        eventHandler.removeMessages(MSG_UPDATE_BUFFERING)
     }
 
     /**
@@ -81,7 +66,32 @@ class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
     ) {
         player.videoInfoLD.value = PlayInfo(Constant.EXOPLAYER_INFO_CODE_LOADING_CANCELED, Constant.EXOPLAYER_INFO_CODE_LOADING_CANCELED)
         SimpleLogger.instance.debugI("ExoPlayer 加载取消")
-        eventHandler.removeMessages(MSG_UPDATE_BUFFERING)
+    }
+
+    /**
+     * Called when a media source loading error occurred.
+     *
+     * <p>This method being called does not indicate that playback has failed, or that it will fail.
+     * The player may be able to recover from the error. Hence applications should <em>not</em>
+     * implement this method to display a user visible error or initiate an application level retry.
+     * {@link Player.Listener#onPlayerError} is the appropriate place to implement such behavior. This
+     * method is called to provide the application with an opportunity to log the error if it wishes
+     * to do so.
+     *
+     * @param eventTime The event time.
+     * @param loadEventInfo The {@link LoadEventInfo} defining the load event.
+     * @param mediaLoadData The {@link MediaLoadData} defining the data being loaded.
+     * @param error The load error.
+     * @param wasCanceled Whether the load was canceled as a result of the error.
+     */
+    override fun onLoadError(
+        eventTime: AnalyticsListener.EventTime,
+        loadEventInfo: LoadEventInfo,
+        mediaLoadData: MediaLoadData,
+        error: IOException,
+        wasCanceled: Boolean
+    ) {
+        player.videoErrorLD.value  = PlayInfo(Constant.EXOPLAYER_ERROR_CODE_LOADING, Constant.EXOPLAYER_ERROR_CODE_LOADING)
     }
 
     /**
@@ -119,7 +129,6 @@ class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
             }
             Player.STATE_BUFFERING -> {
                 player.playerStateLD.value = PlayerState.CACHING
-
             }
             Player.STATE_ENDED -> {
                 player.playerStateLD.value = PlayerState.COMPLETED
@@ -152,4 +161,17 @@ class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
         player.seekCompleteLD.value = true
     }
 
+    override fun onVideoSizeChanged(eventTime: AnalyticsListener.EventTime, videoSize: com.google.android.exoplayer2.video.VideoSize) {
+        player.videoSizeLD.value = VideoSize(videoSize.width, videoSize.height)
+    }
+
+    override fun onBandwidthEstimate(
+        eventTime: AnalyticsListener.EventTime,
+        totalLoadTimeMs: Int,
+        totalBytesLoaded: Long,
+        bitrateEstimate: Long
+    ) {
+        SimpleLogger.instance.debugI("当前网速估计：${bitrateEstimate/(1024f * 1024f)}MB/s 总加载时间: $totalLoadTimeMs   已加载的字节总数: $totalBytesLoaded ")
+        player.networkSpeedLD.value = bitrateEstimate
+    }
 }

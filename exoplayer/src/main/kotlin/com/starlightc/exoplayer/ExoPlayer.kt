@@ -1,6 +1,9 @@
 package com.starlightc.exoplayer
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.os.Message
 import android.view.Surface
 import android.view.SurfaceHolder
 import androidx.lifecycle.Lifecycle
@@ -221,6 +224,8 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
                 seekTo(startPosition)
                 startPosition = 0L
             }
+            eventHandler.removeMessages(MSG_UPDATE_BUFFERING)
+            eventHandler.sendEmptyMessage(MSG_UPDATE_BUFFERING)
             playerStateLD.value = PlayerState.STARTED
         } catch (e: IllegalStateException) {
             e.printStackTrace()
@@ -310,6 +315,7 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
     override fun release() {
         SimpleLogger.instance.debugI("ExoPlayer Release")
         try {
+            eventHandler.removeMessages(MSG_UPDATE_BUFFERING)
             playerStateLD.value = PlayerState.END
             instance.release()
             lifecycleRegistry.currentState = Lifecycle.State.DESTROYED
@@ -496,4 +502,20 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
     }
 
     private var hlsDataSourceFactory: HlsMediaSource.Factory? = null
+
+    val networkSpeedLD = MutableLiveData(0L)
+
+    companion object {
+        private const val MSG_UPDATE_BUFFERING = 1
+    }
+    private val eventHandler: Handler =  object: Handler(Looper.getMainLooper()) {
+        override fun handleMessage(msg: Message) {
+            when(msg.what) {
+                MSG_UPDATE_BUFFERING -> {
+                    bufferingProgressLD.value = instance.bufferedPercentage
+                    sendEmptyMessageDelayed(MSG_UPDATE_BUFFERING,500)
+                }
+            }
+        }
+    }
 }
