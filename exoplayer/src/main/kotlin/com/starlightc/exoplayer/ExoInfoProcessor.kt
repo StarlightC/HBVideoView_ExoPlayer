@@ -29,7 +29,7 @@ open class ExoInfoProcessor: InfoProcessor{
             }
             Constant.EXOPLAYER_INFO_CODE_LOADING_START -> {
                 SimpleLogger.instance.debugI("开始loading ExoPlayer")
-                0
+                2
             }
             Constant.EXOPLAYER_INFO_CODE_BUFFERING_START -> {
                 SimpleLogger.instance.debugI("开始buffering ExoPlayer")
