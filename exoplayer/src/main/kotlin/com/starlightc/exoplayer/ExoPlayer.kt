@@ -1,6 +1,7 @@
 package com.starlightc.exoplayer
 
 import android.content.Context
+import android.net.TrafficStats
 import android.os.Handler
 import android.os.Looper
 import android.os.Message
@@ -13,13 +14,10 @@ import androidx.lifecycle.MutableLiveData
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.extractor.ts.DefaultTsPayloadReaderFactory.FLAG_ALLOW_NON_IDR_KEYFRAMES
-import com.google.android.exoplayer2.source.hls.DefaultHlsDataSourceFactory
 import com.google.android.exoplayer2.source.hls.DefaultHlsExtractorFactory
 import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.exoplayer2.util.Util
 import com.starlightc.video.core.Constant
 import com.starlightc.video.core.SimpleLogger
@@ -31,6 +29,7 @@ import com.starlightc.video.core.interfaces.ErrorProcessor
 import com.starlightc.video.core.interfaces.IMediaPlayer
 import com.starlightc.video.core.interfaces.InfoProcessor
 import com.starlightc.video.core.interfaces.Settings
+
 
 /**
  * @author StarlightC
@@ -458,8 +457,18 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
      * @return -1表示该内核不支持获取
      */
     override fun getNetworkSpeedInfo(): Long {
-        return -1L
-        // TODO: 实时网速信息
+        val nowTotalRxBytes =
+            if (TrafficStats.getUidRxBytes(context.applicationInfo.uid) == TrafficStats.UNSUPPORTED.toLong()) 0 else TrafficStats.getTotalRxBytes() / 1024 //转为KB
+        val nowTimeStamp = System.currentTimeMillis()
+        val calculationTime: Long = nowTimeStamp - lastTimeStamp
+        if (calculationTime == 0L) {
+            return calculationTime
+        }
+        //毫秒转换
+        val speed: Long = (nowTotalRxBytes - lastTotalRxBytes) * 1000 / calculationTime
+        lastTimeStamp = nowTimeStamp
+        lastTotalRxBytes = nowTotalRxBytes
+        return speed
     }
 
     /**
@@ -504,6 +513,9 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
     private var hlsDataSourceFactory: HlsMediaSource.Factory? = null
 
     val networkSpeedLD = MutableLiveData(0L)
+
+    private var lastTimeStamp: Long = 0
+    private var lastTotalRxBytes: Long = 0
 
     companion object {
         private const val MSG_UPDATE_BUFFERING = 1
