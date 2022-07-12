@@ -129,6 +129,7 @@ class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
             }
             Player.STATE_BUFFERING -> {
                 player.playerStateLD.value = PlayerState.CACHING
+                player.videoInfoLD.value = PlayInfo(Constant.EXOPLAYER_INFO_CODE_BUFFERING_START, Constant.EXOPLAYER_INFO_CODE_BUFFERING_START)
             }
             Player.STATE_ENDED -> {
                 player.playerStateLD.value = PlayerState.COMPLETED
