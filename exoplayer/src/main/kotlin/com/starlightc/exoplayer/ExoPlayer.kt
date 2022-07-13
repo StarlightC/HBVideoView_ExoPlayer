@@ -458,7 +458,7 @@ open class ExoPlayer: IMediaPlayer<ExoPlayer> {
      */
     override fun getNetworkSpeedInfo(): Long {
         val nowTotalRxBytes =
-            if (TrafficStats.getUidRxBytes(context.applicationInfo.uid) == TrafficStats.UNSUPPORTED.toLong()) 0 else TrafficStats.getTotalRxBytes() / 1024 //转为KB
+            if (TrafficStats.getUidRxBytes(context.applicationInfo.uid) == TrafficStats.UNSUPPORTED.toLong()) 0 else TrafficStats.getTotalRxBytes()
         val nowTimeStamp = System.currentTimeMillis()
         val calculationTime: Long = nowTimeStamp - lastTimeStamp
         if (calculationTime == 0L) {

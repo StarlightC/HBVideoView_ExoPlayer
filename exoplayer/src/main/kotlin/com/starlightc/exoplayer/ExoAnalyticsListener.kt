@@ -165,14 +165,4 @@ class ExoAnalyticsListener(val player: ExoPlayer): AnalyticsListener {
     override fun onVideoSizeChanged(eventTime: AnalyticsListener.EventTime, videoSize: com.google.android.exoplayer2.video.VideoSize) {
         player.videoSizeLD.value = VideoSize(videoSize.width, videoSize.height)
     }
-
-    override fun onBandwidthEstimate(
-        eventTime: AnalyticsListener.EventTime,
-        totalLoadTimeMs: Int,
-        totalBytesLoaded: Long,
-        bitrateEstimate: Long
-    ) {
-        SimpleLogger.instance.debugI("当前网速估计：${bitrateEstimate/(1024f * 1024f)}MB/s 总加载时间: $totalLoadTimeMs   已加载的字节总数: $totalBytesLoaded ")
-        player.networkSpeedLD.value = bitrateEstimate
-    }
 }
